@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ServerOff, Shield } from 'lucide-react';
 
-type StatItem = { name: string; type: string; value: string | number };
+type MapEntry = { name: string; value: string };
+type StatItem = { name: string; type: string; value: string | number | MapEntry[] };
 
 function RpzStatsSection() {
   const { data, isLoading, error } = trpc.recursor.rpzStats.useQuery(undefined, { retry: false });
@@ -128,7 +129,11 @@ export default function RecursorPage() {
                         <TableCell>
                           <span className="text-xs text-muted-foreground">{s.type}</span>
                         </TableCell>
-                        <TableCell className="text-right font-mono">{String(s.value)}</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {Array.isArray(s.value)
+                            ? s.value.map((e: MapEntry) => `${e.name}: ${e.value}`).join(', ')
+                            : String(s.value)}
+                        </TableCell>
                       </TableRow>
                     ))}
                     {stats.length === 0 && (
