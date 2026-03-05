@@ -1,0 +1,54 @@
+services:
+  pdns-auth:
+    image: powerdns/pdns-auth-50:latest
+    container_name: pdns-auth
+    ports:
+      - "8081:8081"   # API / webserver
+      - "5300:53/udp" # DNS (mapped to 5300 to avoid conflict with host resolver)
+      - "5300:53/tcp"
+    environment:
+      PDNS_AUTH_API: "yes"
+      PDNS_AUTH_API_KEY: "changeme"
+      PDNS_AUTH_WEBSERVER: "yes"
+      PDNS_AUTH_WEBSERVER_ADDRESS: "0.0.0.0"
+      PDNS_AUTH_WEBSERVER_PORT: "8081"
+      PDNS_AUTH_WEBSERVER_ALLOW_FROM: "0.0.0.0/0,::/0"
+      PDNS_AUTH_LAUNCH: "gsqlite3"
+      PDNS_AUTH_GSQLITE3_DATABASE: "/var/lib/powerdns/pdns.sqlite3"
+    volumes:
+      - pdns-auth-data:/var/lib/powerdns
+    restart: unless-stopped
+
+  pdns-recursor:
+    image: powerdns/pdns-recursor-52:latest
+    container_name: pdns-recursor
+    ports:
+      - "8082:8082"   # API / webserver
+      - "5301:53/udp" # DNS
+      - "5301:53/tcp"
+    command:
+      - "--webserver=yes"
+      - "--webserver-address=0.0.0.0"
+      - "--webserver-port=8082"
+      - "--webserver-allow-from=0.0.0.0/0,::/0"
+      - "--api-key=changeme"
+      - "--allow-from=0.0.0.0/0,::/0"
+      - "--api-config-dir=/etc/powerdns/recursor.d"
+    volumes:
+      - pdns-recursor-data:/etc/powerdns/recursor.d
+    restart: unless-stopped
+
+  keycloak:
+    build: ./docker/keycloak
+    container_name: keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pdns-auth-data:
+  pdns-recursor-data:

@@ -1,0 +1,74 @@
+{
+  "realm": "dns-admin",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Full access" },
+      { "name": "viewer", "description": "Read-only access" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "dns-admin-ui",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "dns-admin-secret",
+      "redirectUris": [
+        "http://localhost:3000/auth/oidc/callback",
+        "http://localhost:5173/auth/oidc/callback",
+        "http://localhost:3000/login",
+        "http://localhost:5173/login"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:5173"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": [
+        "openid",
+        "email",
+        "profile"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "roles",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "multivalued": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "testuser",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "default-roles-dns-admin"]
+    }
+  ]
+}

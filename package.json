@@ -1,0 +1,24 @@
+{
+  "name": "dns-admin-ui",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "docker compose up -d && pnpm --filter @dns-admin/backend db:migrate && pnpm --parallel -r dev",
+    "stop": "docker compose stop && powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "setup": "pnpm --filter @dns-admin/backend db:migrate && pnpm --filter @dns-admin/backend db:seed",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
+  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"
+}

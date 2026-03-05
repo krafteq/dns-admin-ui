@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-shm
+*.db-wal
+data/
+.turbo/
+.vite/
+.claude/
+*.tsbuildinfo
