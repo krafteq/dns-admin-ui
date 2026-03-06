@@ -12,9 +12,13 @@ import {
   Key,
   Server,
   Settings,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { useTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -51,6 +55,35 @@ const navGroups = [
     ],
   },
 ];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const options = [
+    { value: 'light' as const, icon: Sun, label: 'Light' },
+    { value: 'dark' as const, icon: Moon, label: 'Dark' },
+    { value: 'system' as const, icon: Monitor, label: 'System' },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 rounded-md border p-1">
+      {options.map(({ value, icon: Icon, label }) => (
+        <button
+          key={value}
+          onClick={() => setTheme(value)}
+          title={label}
+          className={cn(
+            'flex-1 rounded-sm p-1.5 transition-colors',
+            theme === value
+              ? 'bg-accent text-accent-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Icon className="mx-auto h-3.5 w-3.5" />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function Sidebar() {
   const { user, logout } = useAuth();
@@ -92,8 +125,9 @@ export function Sidebar() {
         ))}
       </nav>
       <Separator />
-      <div className="p-3">
-        <div className="mb-2 px-3 text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+      <div className="p-3 space-y-2">
+        <ThemeToggle />
+        <div className="px-3 text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
           <span>Logged in as <span className="font-medium">{user?.username}</span></span>
           <Badge variant="outline" className="text-xs">{user?.role}</Badge>
         </div>

@@ -1,0 +1,216 @@
+/* =====================================================================
+   Network Abstraction Background — Pure CSS + SVG, static
+   Combines: circuit board traces, connected node mesh, floating
+   device blocks, perspective depth, cyan/magenta dual-tone neon
+   ===================================================================== */
+
+.net-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    /* Depth vignette — darker at edges */
+    radial-gradient(ellipse 80% 70% at 50% 45%, transparent 30%, hsla(220, 60%, 3%, 0.5) 100%),
+    /* Central subtle brightening */
+    radial-gradient(ellipse 50% 40% at 50% 50%, hsla(210, 80%, 15%, 0.3), transparent),
+    /* Base */
+    linear-gradient(160deg, hsl(230, 55%, 4%) 0%, hsl(215, 50%, 7%) 50%, hsl(225, 45%, 5%) 100%);
+}
+
+:root:not(.dark) .net-bg {
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 45%, transparent 30%, hsla(215, 25%, 88%, 0.4) 100%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, hsla(215, 30%, 94%, 0.5), transparent),
+    linear-gradient(160deg, hsl(215, 22%, 95%) 0%, hsl(220, 25%, 93%) 50%, hsl(215, 22%, 95%) 100%);
+}
+
+/* --- SVG layers container ------------------------------------------ */
+
+.net-bg__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Mesh connection lines (node-to-node thin links) --------------- */
+
+.net-bg__mesh-line {
+  stroke: hsla(200, 90%, 55%, 0.07);
+  stroke-width: 0.5;
+  fill: none;
+}
+
+.net-bg__mesh-line--bright {
+  stroke: hsla(200, 100%, 60%, 0.12);
+  stroke-width: 0.7;
+}
+
+:root:not(.dark) .net-bg__mesh-line {
+  stroke: hsla(215, 60%, 45%, 0.10);
+}
+:root:not(.dark) .net-bg__mesh-line--bright {
+  stroke: hsla(215, 70%, 45%, 0.16);
+}
+
+/* --- Circuit traces (thicker, 90° turns) --------------------------- */
+
+.net-bg__trace {
+  fill: none;
+  stroke: hsla(195, 100%, 55%, 0.09);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.net-bg__trace--accent {
+  stroke: hsla(270, 80%, 60%, 0.07);
+}
+
+:root:not(.dark) .net-bg__trace {
+  stroke: hsla(215, 70%, 45%, 0.14);
+}
+:root:not(.dark) .net-bg__trace--accent {
+  stroke: hsla(270, 50%, 50%, 0.10);
+}
+
+/* --- Mesh nodes (connection dots) ---------------------------------- */
+
+.net-bg__mesh-node {
+  fill: hsla(195, 100%, 70%, 0.35);
+}
+
+.net-bg__mesh-node--dim {
+  fill: hsla(195, 100%, 65%, 0.15);
+}
+
+:root:not(.dark) .net-bg__mesh-node {
+  fill: hsla(215, 70%, 45%, 0.30);
+}
+:root:not(.dark) .net-bg__mesh-node--dim {
+  fill: hsla(215, 70%, 45%, 0.15);
+}
+
+/* --- Junction glow nodes (magenta, at trace turns) ----------------- */
+
+.net-bg__node {
+  position: absolute;
+  border-radius: 50%;
+  background: hsla(310, 100%, 65%, 0.50);
+  box-shadow:
+    0 0 4px 1px hsla(310, 100%, 60%, 0.30),
+    0 0 12px 3px hsla(310, 100%, 55%, 0.10);
+}
+
+.net-bg__node--sm { width: 3px; height: 3px; }
+
+.net-bg__node--md {
+  width: 4px; height: 4px;
+  box-shadow:
+    0 0 5px 2px hsla(310, 100%, 60%, 0.35),
+    0 0 16px 4px hsla(310, 100%, 55%, 0.12);
+}
+
+.net-bg__node--lg {
+  width: 6px; height: 6px;
+  box-shadow:
+    0 0 6px 2px hsla(310, 100%, 60%, 0.40),
+    0 0 20px 5px hsla(310, 100%, 55%, 0.15);
+}
+
+:root:not(.dark) .net-bg__node {
+  background: hsla(280, 70%, 50%, 0.45);
+  box-shadow:
+    0 0 4px 1px hsla(280, 70%, 50%, 0.25),
+    0 0 10px 3px hsla(280, 70%, 50%, 0.10);
+}
+:root:not(.dark) .net-bg__node--md {
+  box-shadow:
+    0 0 5px 2px hsla(280, 70%, 50%, 0.30),
+    0 0 14px 4px hsla(280, 70%, 50%, 0.12);
+}
+:root:not(.dark) .net-bg__node--lg {
+  box-shadow:
+    0 0 6px 2px hsla(280, 70%, 50%, 0.35),
+    0 0 18px 5px hsla(280, 70%, 50%, 0.14);
+}
+
+/* --- Floating device blocks (tiny rectangles like network devices) -- */
+
+.net-bg__device {
+  fill: none;
+  stroke: hsla(195, 100%, 65%, 0.12);
+  stroke-width: 0.5;
+}
+
+.net-bg__device--filled {
+  fill: hsla(195, 100%, 65%, 0.04);
+}
+
+:root:not(.dark) .net-bg__device {
+  stroke: hsla(215, 60%, 45%, 0.16);
+}
+:root:not(.dark) .net-bg__device--filled {
+  fill: hsla(215, 60%, 45%, 0.04);
+}
+
+/* --- Central glow area --------------------------------------------- */
+
+.net-bg__center-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 350px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    hsla(210, 100%, 55%, 0.06) 0%,
+    hsla(250, 80%, 50%, 0.03) 50%,
+    transparent 70%
+  );
+  filter: blur(30px);
+}
+
+:root:not(.dark) .net-bg__center-glow {
+  background: radial-gradient(
+    ellipse,
+    hsla(215, 60%, 55%, 0.08) 0%,
+    hsla(260, 50%, 55%, 0.04) 50%,
+    transparent 70%
+  );
+}
+
+/* --- Edge glow accents --------------------------------------------- */
+
+.net-bg__edge-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+}
+
+.net-bg__edge-glow--tl {
+  top: -5%;
+  left: -5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, hsla(260, 80%, 45%, 0.06), transparent 70%);
+}
+
+.net-bg__edge-glow--br {
+  bottom: -5%;
+  right: -5%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, hsla(195, 90%, 50%, 0.05), transparent 70%);
+}
+
+:root:not(.dark) .net-bg__edge-glow--tl {
+  background: radial-gradient(circle, hsla(260, 50%, 50%, 0.06), transparent 70%);
+}
+:root:not(.dark) .net-bg__edge-glow--br {
+  background: radial-gradient(circle, hsla(215, 60%, 50%, 0.05), transparent 70%);
+}
