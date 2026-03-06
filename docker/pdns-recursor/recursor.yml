@@ -1,0 +1,18 @@
+incoming:
+  listen:
+    - 0.0.0.0:53
+  allow_from:
+    - 0.0.0.0/0
+    - ::/0
+
+webservice:
+  webserver: true
+  api_key: changeme
+  address: 0.0.0.0
+  port: 8082
+  allow_from:
+    - 0.0.0.0/0
+    - ::/0
+
+logging:
+  loglevel: 4

@@ -106,15 +106,33 @@ const target = name || '.';
 recursorRequest('PUT', `/cache/flush?domain=${encodeURIComponent(target)}`);
 ```
 
+### PowerDNS Recursor — YAML config required (v5.1+)
+Recursor v5.1+ requires YAML config format (old `key=value` style is disabled by default). Config file is `docker/pdns-recursor/recursor.yml`. The `api-config-dir` setting has no YAML equivalent in v5.2, so it's passed as a command arg in `docker-compose.yml`.
+
 ### PowerDNS Recursor — forwarders via API
-The Recursor API requires `api-config-dir` to be set before it allows forwarder creation/deletion. Add to `docker-compose.yml`:
-```yaml
-command:
-  - "--api-config-dir=/etc/powerdns/recursor.d"
-volumes:
-  - pdns-recursor-data:/etc/powerdns/recursor.d
+The Recursor API requires `api-config-dir` to be set before it allows forwarder creation/deletion. This is passed as a command arg in `docker-compose.yml`.
+
+### Docker setup — Dockerfiles per service
+Each Docker service has its own directory under `docker/` with a `Dockerfile` and config file:
+- `docker/pdns-auth/` — Dockerfile + `pdns.conf`
+- `docker/pdns-recursor/` — Dockerfile + `recursor.yml`
+- `docker/keycloak/` — Dockerfile + `realm-export.json`
+
+All service configuration lives in the config files (single source of truth). Do NOT duplicate config via `environment` vars or `command` args in `docker-compose.yml`.
+
+After changing a config file, rebuild the image:
+```bash
+docker compose build --no-cache <service> && docker compose up -d --force-recreate <service>
 ```
-After changing docker-compose.yml, use `docker compose up -d --force-recreate pdns-recursor` (not just `restart`) to apply the new config.
+
+### Docker healthchecks
+All services have healthchecks configured in `docker-compose.yml`:
+- **pdns-auth**: `pdns_control rping`
+- **pdns-recursor**: `rec_control ping`
+- **keycloak**: HTTP check on `/health/ready` (requires `--health-enabled=true` in command)
+
+### Docker networking
+All services are on a shared `dns-net` bridge network defined in `docker-compose.yml`. Services can reach each other by container name (e.g. `pdns-auth:53`).
 
 ### Docker Compose v2
 System uses Docker Compose v2 plugin — use `docker compose` (no hyphen). `docker-compose` (v1) is not installed.
@@ -157,6 +175,9 @@ Keycloak requires a **realm role protocol mapper** on the client to include role
 docker compose build --no-cache keycloak && docker compose down keycloak && docker compose up -d keycloak
 ```
 Just `--force-recreate` may reuse the existing realm. `down` + `up` ensures a fresh import.
+
+### Windows Docker — bind mounts don't work reliably
+Bind mounts with Windows paths (`D:\...`) and `:ro` suffix fail on Windows Docker. Use Dockerfiles with `COPY` instead (this is why each service has its own `docker/` subdirectory). Named volumes work fine.
 
 ### tRPC test context typing
 When mocking `res` in tRPC test contexts, extract it to a named variable to avoid TypeScript `never` type issues:
