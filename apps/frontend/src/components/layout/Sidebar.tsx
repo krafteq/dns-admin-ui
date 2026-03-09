@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-const navGroups = [
+const navGroups: { label?: string; items: { to: string; label: string; icon: React.ComponentType<any>; end?: boolean }[] }[] = [
   {
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,7 +41,7 @@ const navGroups = [
   {
     label: 'Recursor',
     items: [
-      { to: '/recursor', label: 'Statistics', icon: RefreshCw },
+      { to: '/recursor', label: 'Statistics', icon: RefreshCw, end: true },
       { to: '/forwarders', label: 'Forwarders', icon: ArrowRightLeft },
       { to: '/recursor/config', label: 'Configuration', icon: Settings },
     ],
@@ -103,10 +103,11 @@ export function Sidebar() {
               </p>
             )}
             <div className="space-y-1">
-              {group.items.map(({ to, label, icon: Icon }) => (
+              {group.items.map(({ to, label, icon: Icon, end }) => (
                 <NavLink
                   key={to}
                   to={to}
+                  end={end}
                   className={({ isActive }) =>
                     cn(
                       'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',

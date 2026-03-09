@@ -58,6 +58,7 @@ export const authRouter = router({
         username: user.username,
         role: user.role,
         createdAt: user.createdAt,
+        isOidc: false,
       };
     }),
 
