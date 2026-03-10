@@ -2,31 +2,28 @@
 
 This guide explains how to manually configure Keycloak as an OIDC identity provider for DNS Admin UI.
 
-## Prerequisites
-
-- Keycloak running and accessible (e.g. `http://localhost:8080`)
-- DNS Admin UI deployed (e.g. via `docker-compose.prod_local.yml`)
-
 ## 1. Start Keycloak
 
-If using the dev docker-compose:
+Create a `docker-compose.keycloak.yml`:
 
-```bash
-docker compose up -d keycloak
+```yaml
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 ```
 
-Or run a standalone Keycloak:
-
 ```bash
-docker run -d \
-  --name keycloak \
-  -p 8080:8080 \
-  -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
-  -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
-  quay.io/keycloak/keycloak:26.0 start-dev
+docker compose -f docker-compose.keycloak.yml up -d
 ```
 
-Open `http://localhost:8080` and log in with your admin credentials.
+Wait for Keycloak to start, then open `http://localhost:8080` and log in with your admin credentials.
 
 ## 2. Create Realm
 
@@ -91,40 +88,56 @@ Without this step, the ID token won't contain roles and all SSO users will defau
 
 Repeat for each user you want to create.
 
-## 7. Configure DNS Admin UI
+## 7. Start DNS Admin UI
 
-Set the following environment variables for the DNS Admin UI backend:
+Now that Keycloak is configured, start (or recreate) the DNS Admin UI container with the OIDC env vars.
 
-| Variable | Description | Example |
-|---|---|---|
-| `OIDC_ISSUER_URL` | Keycloak realm URL | `http://localhost:8080/realms/dns-admin` |
-| `OIDC_CLIENT_ID` | Client ID from step 3 | `dns-admin-ui` |
-| `OIDC_CLIENT_SECRET` | Client secret from step 3 | `<copied-secret>` |
-| `OIDC_REDIRECT_URI` | Must match redirect URI in step 3 | `http://localhost:3000/auth/oidc/callback` |
-
-### Example: docker-compose.prod_local.yml
-
-```yaml
-environment:
-  OIDC_ISSUER_URL: http://localhost:8080/realms/dns-admin
-  OIDC_CLIENT_ID: dns-admin-ui
-  OIDC_CLIENT_SECRET: <your-client-secret>
-  OIDC_REDIRECT_URI: http://localhost:3000/auth/oidc/callback
-```
-
-### Docker networking note
-
-When the DNS Admin UI runs in Docker, `localhost` inside the container doesn't reach the host by default. Add `extra_hosts` to make it work:
+Create a `docker-compose.yml` for the app:
 
 ```yaml
 services:
   dns-admin-ui:
-    # ...
+    image: krafteq.azurecr.io/dns-admin-ui:latest
+    ports:
+      - "3000:3000"
+    environment:
+      # -- Required: PowerDNS --
+      PDNS_URL: http://your-pdns-auth:8081
+      PDNS_API_KEY: your-api-key
+      RECURSOR_URL: http://your-recursor:8082
+      RECURSOR_API_KEY: your-api-key
+      JWT_SECRET: change-me-to-a-long-random-string
+
+      # -- OIDC / SSO (from steps 2-3) --
+      OIDC_ISSUER_URL: http://localhost:8080/realms/dns-admin
+      OIDC_CLIENT_ID: dns-admin-ui
+      OIDC_CLIENT_SECRET: <your-client-secret>
+      OIDC_REDIRECT_URI: http://localhost:3000/auth/oidc/callback
     extra_hosts:
       - "localhost:host-gateway"
+    volumes:
+      - dns-admin-data:/app/apps/backend/data
+    restart: unless-stopped
+
+volumes:
+  dns-admin-data:
 ```
 
-This maps `localhost` inside the container to the Docker host, so both the browser redirects and backend-to-Keycloak communication use the same `localhost:8080` URL.
+Replace `<your-client-secret>` with the client secret copied in step 3.
+
+```bash
+docker compose up -d
+```
+
+If the container is already running without OIDC, add the OIDC env vars and recreate:
+
+```bash
+docker compose up -d dns-admin-ui
+```
+
+### Docker networking note
+
+When DNS Admin UI runs in Docker, `localhost` inside the container doesn't reach the host by default. The `extra_hosts: "localhost:host-gateway"` directive maps `localhost` inside the container to the Docker host, so both browser redirects and backend-to-Keycloak communication use the same `localhost:8080` URL.
 
 ## 8. Optional: Role Mapping Configuration
 
@@ -139,8 +152,7 @@ If your Keycloak uses a different claim name or role value, adjust these accordi
 
 ## 9. Verify
 
-1. Start/restart DNS Admin UI
-2. Open `http://localhost:3000/login`
-3. The **"Sign in with SSO"** button should appear
-4. Click it → authenticate in Keycloak → redirected back to dashboard
-5. Check the Users page — your SSO user should appear with the correct role
+1. Open `http://localhost:3000/login`
+2. The **"Sign in with SSO"** button should appear
+3. Click it → authenticate in Keycloak → redirected back to dashboard
+4. Check the Users page — your SSO user should appear with the correct role
