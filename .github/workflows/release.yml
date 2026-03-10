@@ -6,7 +6,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -16,6 +16,8 @@ jobs:
     environment: release
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: docker/setup-buildx-action@v3
 
@@ -62,3 +64,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Find the previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | sed -n '2p')
+          if [ -n "$PREV_TAG" ]; then
+            LOG=$(git log --pretty=format:'- %s' "$PREV_TAG"..HEAD -- ':!.github')
+          else
+            LOG=$(git log --pretty=format:'- %s' -- ':!.github')
+          fi
+          # Write to file to preserve newlines
+          echo "$LOG" > /tmp/changelog.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          cat > /tmp/release-notes.md <<EOF
+          ## Docker image
+
+          \`\`\`
+          docker pull ${{ vars.ACR_REGISTRY }}/dns-admin-ui:${VERSION}
+          \`\`\`
+
+          ## Changes
+
+          $(cat /tmp/changelog.txt)
+          EOF
+          sed -i 's/^          //' /tmp/release-notes.md
+          gh release create "$TAG" --title "$TAG" --notes-file /tmp/release-notes.md

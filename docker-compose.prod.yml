@@ -1,0 +1,37 @@
+## DNS Admin UI — production deployment example
+##
+## Quick start:
+##   1. Copy this file and adjust the environment variables below
+##   2. docker compose -f docker-compose.prod.yml up -d
+##   3. Open http://localhost:3000 — default login: admin / admin
+##
+## Image: krafteq.azurecr.io/dns-admin-ui
+
+services:
+  dns-admin-ui:
+    image: krafteq.azurecr.io/dns-admin-ui:0.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      # -- Required: PowerDNS Authoritative Server --
+      PDNS_URL: http://pdns-auth:8081
+      PDNS_API_KEY: changeme
+
+      # -- Required: PowerDNS Recursor --
+      RECURSOR_URL: http://pdns-recursor:8082
+      RECURSOR_API_KEY: changeme
+
+      # -- Required: JWT secret (use a long random string) --
+      JWT_SECRET: change-me-to-a-long-random-string
+
+      # -- Optional: OIDC / SSO --
+      # OIDC_ISSUER_URL: https://keycloak.example.com/realms/dns-admin
+      # OIDC_CLIENT_ID: dns-admin-ui
+      # OIDC_CLIENT_SECRET: your-client-secret
+      # OIDC_REDIRECT_URI: https://dns-admin.example.com/auth/oidc/callback
+    volumes:
+      - dns-admin-data:/app/apps/backend/data
+    restart: unless-stopped
+
+volumes:
+  dns-admin-data:
