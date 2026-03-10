@@ -9,3 +9,4 @@ data/
 .vite/
 .claude/
 *.tsbuildinfo
+docker-compose.prod_local.yml

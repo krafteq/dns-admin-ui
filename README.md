@@ -89,6 +89,8 @@ On first start the container automatically runs database migrations and seeds th
 
 When OIDC is configured, a "Sign in with SSO" button appears on the login page. Local login remains available.
 
+For step-by-step Keycloak setup instructions, see [Keycloak Manual Setup Guide](docs/keycloak-setup.md).
+
 ### Data Persistence
 
 The SQLite database is stored at `/app/apps/backend/data/dns-admin.db` inside the container. Mount a volume to persist it across restarts:
