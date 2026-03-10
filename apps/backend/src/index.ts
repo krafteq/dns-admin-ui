@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
@@ -14,6 +15,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // max 300 requests per window per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
 
 app.use(
   cors({

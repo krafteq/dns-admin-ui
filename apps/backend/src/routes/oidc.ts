@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import * as client from 'openid-client';
 import { SignJWT, jwtVerify } from 'jose';
 import { eq, and } from 'drizzle-orm';
@@ -8,7 +9,16 @@ import { JWT_SECRET } from '../lib/config.js';
 import { writeAuditLog } from '../lib/audit.js';
 import { isOidcEnabled, getOidcConfig, getOidcRedirectUri } from '../lib/oidc.js';
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // max 20 auth attempts per window
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export const oidcRouter = Router();
+
+oidcRouter.use('/auth/oidc', authLimiter);
 
 const COOKIE_OPTS = {
   httpOnly: true,
